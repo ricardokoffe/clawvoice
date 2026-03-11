@@ -1,0 +1,1140 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ClawVoice — Tradução ao Vivo</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --orange:#F04E23;--orange-h:#FF6B42;
+  --blue:#3B5BDB;--blue-h:#4C6EF5;
+  --dark:#111827;--gray:#6B7280;
+  --gray-light:#F3F4F6;--gray-mid:#E5E7EB;
+  --white:#fff;--green:#10B981;--red:#EF4444;
+  --bg:#F0F2F5;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--dark);min-height:100vh;}
+
+/* HEADER */
+header{height:56px;padding:0 28px;display:flex;align-items:center;justify-content:space-between;background:var(--white);border-bottom:1px solid var(--gray-mid);position:sticky;top:0;z-index:200;}
+.logo{display:flex;align-items:center;gap:9px;cursor:pointer;text-decoration:none;}
+.waves{display:flex;align-items:flex-end;gap:3px;height:24px;}
+.waves span{display:block;width:4px;border-radius:2px;background:var(--orange);animation:wv 1.2s ease-in-out infinite;}
+.waves span:nth-child(1){height:9px;animation-delay:0s}
+.waves span:nth-child(2){height:17px;animation-delay:.15s}
+.waves span:nth-child(3){height:24px;animation-delay:.3s}
+.waves span:nth-child(4){height:17px;animation-delay:.45s}
+.waves span:nth-child(5){height:11px;animation-delay:.6s}
+@keyframes wv{0%,100%{transform:scaleY(1);opacity:1}50%{transform:scaleY(.45);opacity:.5}}
+.logo-name{font-size:19px;font-weight:800;color:var(--dark);letter-spacing:-.5px;}
+.logo-name span{color:var(--orange);}
+.hnav{display:flex;gap:4px;}
+.hnav-btn{padding:7px 16px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;background:none;border:none;color:var(--gray);transition:all .2s;font-family:'Inter',sans-serif;}
+.hnav-btn:hover,.hnav-btn.active{background:var(--gray-light);color:var(--dark);}
+.hright{display:flex;align-items:center;gap:10px;}
+.hbadge{padding:5px 12px;border-radius:6px;font-size:12px;font-weight:700;background:#FFF7ED;color:var(--orange);border:1px solid #FED7AA;}
+.havatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--blue-h));color:white;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;cursor:pointer;}
+.screen{display:none;}.screen.active{display:block;}
+
+/* ══ LANDING — estilo LiveVoice ══ */
+.land{min-height:calc(100vh - 56px);display:flex;align-items:center;background:var(--white);}
+.land-inner{max-width:1100px;margin:0 auto;padding:60px 40px;display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;}
+@media(max-width:720px){.land-inner{grid-template-columns:1fr;gap:32px;padding:40px 24px;}.land-img{display:none;}}
+.land-title{font-size:52px;font-weight:900;letter-spacing:-2px;line-height:1.1;margin-bottom:18px;color:var(--dark);}
+@media(max-width:900px){.land-title{font-size:38px;}}
+.land-sub{font-size:17px;color:var(--gray);line-height:1.7;margin-bottom:32px;max-width:480px;}
+.land-cta{background:var(--orange);color:white;border:none;padding:18px 36px;border-radius:12px;font-size:17px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;transition:all .2s;display:inline-block;}
+.land-cta:hover{background:var(--orange-h);transform:translateY(-2px);box-shadow:0 8px 24px rgba(240,78,35,.3);}
+.land-cta2{background:none;border:2px solid var(--gray-mid);color:var(--dark);padding:16px 28px;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;transition:all .2s;margin-left:12px;}
+.land-cta2:hover{background:var(--gray-light);}
+.land-img{background:var(--bg);border-radius:24px;padding:32px;display:flex;align-items:center;justify-content:center;min-height:320px;position:relative;overflow:hidden;}
+.phone-mockup{background:var(--white);border-radius:24px;padding:20px 16px;width:180px;box-shadow:0 20px 60px rgba(0,0,0,.15);position:relative;z-index:2;}
+.phone-lang{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:10px;margin-bottom:8px;cursor:pointer;transition:all .2s;}
+.phone-lang:hover{background:var(--gray-light);}
+.phone-lang.active{background:#EFF6FF;}
+.phone-play{width:24px;height:24px;border-radius:50%;border:2px solid var(--gray-mid);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--gray);}
+.phone-play.active{border-color:var(--orange);color:var(--orange);}
+.phone-lang-name{font-size:14px;font-weight:700;color:var(--dark);}
+.phone-wave{display:flex;align-items:flex-end;gap:2px;height:14px;margin-left:auto;}
+.phone-wave span{display:block;width:3px;border-radius:1px;background:var(--orange);}
+.listen-badge{position:absolute;bottom:28px;right:-10px;background:var(--blue);color:white;padding:10px 16px;border-radius:20px;font-size:13px;font-weight:700;box-shadow:0 4px 16px rgba(59,91,219,.4);z-index:3;white-space:nowrap;}
+
+/* ══ JOIN (OUVINTE) ══ */
+.join-wrap{min-height:calc(100vh - 56px);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;text-align:center;}
+.join-wrap h2{font-size:34px;font-weight:900;letter-spacing:-1px;margin-bottom:6px;}
+.join-sub{color:var(--gray);font-size:15px;margin-bottom:34px;}
+.code-top-lbl{font-size:11px;font-weight:700;color:var(--gray);letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;}
+.cboxes{display:flex;gap:10px;justify-content:center;margin-bottom:26px;}
+.cbi{width:52px;height:60px;border-radius:12px;border:2px solid var(--gray-mid);background:var(--white);font-size:24px;font-weight:900;text-align:center;color:var(--dark);font-family:'Inter',sans-serif;outline:none;transition:all .2s;text-transform:uppercase;}
+.cbi:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(59,91,219,.15);}
+.cbi.filled{border-color:var(--blue);background:#EFF6FF;}
+@media(max-width:400px){.cbi{width:40px;height:50px;font-size:18px;}.cboxes{gap:6px;}}
+.join-big-btn{background:var(--blue);color:white;border:none;padding:15px 44px;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;transition:all .2s;margin-bottom:30px;}
+.join-big-btn:hover{background:var(--blue-h);transform:translateY(-2px);box-shadow:0 8px 24px rgba(59,91,219,.3);}
+.or-line{display:flex;align-items:center;gap:12px;max-width:360px;margin:0 auto 22px;color:var(--gray);font-size:13px;}
+.or-line::before,.or-line::after{content:'';flex:1;height:1px;background:var(--gray-mid);}
+.rooms-sec{max-width:480px;width:100%;text-align:left;margin:0 auto;}
+.rooms-sec-lbl{font-size:11px;font-weight:700;color:var(--gray);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px;}
+.rrow{display:flex;align-items:center;justify-content:space-between;background:var(--white);border:2px solid var(--gray-mid);border-radius:12px;padding:13px 16px;cursor:pointer;transition:all .2s;margin-bottom:9px;}
+.rrow:hover{border-color:var(--orange);background:#FFF7F4;}
+.rrow-info{display:flex;align-items:center;gap:11px;}
+.rrow-flag{width:38px;height:38px;border-radius:50%;background:var(--gray-light);display:flex;align-items:center;justify-content:center;font-size:20px;}
+.rrow-name{font-size:14px;font-weight:700;}
+.rrow-sub{font-size:12px;color:var(--gray);display:flex;align-items:center;gap:4px;margin-top:1px;}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:dp 1.5s infinite;}
+@keyframes dp{0%,100%{opacity:1}50%{opacity:.3}}
+.rrow-btn{background:var(--orange);color:white;border:none;padding:7px 14px;border-radius:7px;font-weight:700;font-size:12px;cursor:pointer;white-space:nowrap;}
+.rrow-locked{cursor:default;opacity:.85;}
+.rrow-locked:hover{border-color:var(--gray-mid);background:var(--white);}
+.back-lnk{display:inline-flex;align-items:center;gap:5px;color:var(--gray);font-size:14px;cursor:pointer;background:none;border:none;font-weight:500;margin-bottom:20px;transition:color .2s;font-family:'Inter',sans-serif;}
+.back-lnk:hover{color:var(--dark);}
+
+/* ══ TRANSLATOR LOGIN ══ */
+.tlogin-wrap{min-height:calc(100vh - 56px);display:flex;align-items:center;justify-content:center;padding:40px 20px;}
+.tlogin-card{background:var(--white);border-radius:20px;padding:36px 32px;max-width:400px;width:100%;box-shadow:0 4px 24px rgba(0,0,0,.08);}
+.tlogin-waves{display:flex;justify-content:center;margin-bottom:10px;}
+.finput{width:100%;background:var(--gray-light);border:2px solid var(--gray-mid);border-radius:10px;padding:12px 14px;color:var(--dark);font-family:'Inter',sans-serif;font-size:15px;outline:none;transition:border-color .2s;}
+.finput:focus{border-color:var(--blue);background:white;}
+.flabel{display:block;font-size:12px;font-weight:700;color:var(--dark);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;}
+.fbtn{background:var(--blue);color:white;border:none;padding:14px;border-radius:10px;font-weight:700;font-size:15px;cursor:pointer;width:100%;font-family:'Inter',sans-serif;transition:all .2s;}
+.fbtn:hover{background:var(--blue-h);}
+
+/* ══ DASHBOARD ══ */
+.dash-wrap{max-width:1100px;margin:0 auto;padding:32px 24px;}
+.dash-title{font-size:26px;font-weight:900;letter-spacing:-.5px;margin-bottom:24px;}
+.dash-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:28px;}
+@media(max-width:700px){.dash-grid{grid-template-columns:1fr;}}
+.dcard{background:var(--white);border-radius:16px;padding:24px;border:1px solid var(--gray-mid);}
+.dcard h4{font-size:15px;font-weight:700;margin-bottom:16px;}
+.dcard-empty{background:var(--gray-light);border-radius:12px;padding:28px;text-align:center;}
+.dash-stat{font-size:36px;font-weight:900;margin:8px 0 4px;}
+.dash-stat-lbl{font-size:13px;color:var(--gray);}
+.event-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--gray-mid);cursor:pointer;transition:all .2s;border-radius:8px;}
+.event-row:last-child{border-bottom:none;}
+.event-row:hover{background:var(--gray-light);padding:12px 8px;margin:0 -8px;}
+.event-row-name{font-size:15px;font-weight:700;}
+.event-row-meta{font-size:12px;color:var(--gray);margin-top:2px;}
+.ebadge{padding:4px 10px;border-radius:6px;font-size:11px;font-weight:700;background:var(--gray-light);color:var(--gray);}
+
+/* ══ BOTÃO CRIAR ══ */
+.create-btn{background:var(--blue);color:white;border:none;padding:11px 22px;border-radius:9px;font-weight:700;font-size:14px;cursor:pointer;font-family:'Inter',sans-serif;transition:all .2s;display:inline-flex;align-items:center;gap:7px;}
+.create-btn:hover{background:var(--blue-h);}
+
+/* ══ MY EVENTS ══ */
+.my-events-wrap{max-width:1100px;margin:0 auto;padding:32px 24px;}
+
+/* ══ EVENTO PAGE ══ */
+.event-page{max-width:1000px;margin:0 auto;padding:28px 24px;}
+.event-page-title{font-size:28px;font-weight:900;letter-spacing:-.7px;margin-bottom:20px;}
+.etabs-row{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;}
+.etabs{display:flex;gap:4px;border-bottom:2px solid var(--gray-mid);flex-wrap:wrap;}
+.etab{padding:10px 16px;font-size:14px;font-weight:600;cursor:pointer;color:var(--gray);background:none;border:none;font-family:'Inter',sans-serif;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s;white-space:nowrap;}
+.etab.active{color:var(--dark);border-bottom-color:var(--dark);}
+.share-top-btn{background:var(--orange);color:white;border:none;padding:10px 20px;border-radius:9px;font-weight:700;font-size:14px;cursor:pointer;font-family:'Inter',sans-serif;transition:all .2s;}
+.share-top-btn:hover{background:var(--orange-h);}
+.chan-empty{background:var(--gray-light);border-radius:16px;padding:48px;text-align:center;margin-bottom:12px;}
+.chan-card{background:var(--white);border:1px solid var(--gray-mid);border-radius:14px;padding:20px 22px;margin-bottom:12px;}
+.chan-card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.chan-name{font-size:16px;font-weight:800;}
+.chan-sub{font-size:13px;color:var(--gray);margin-bottom:12px;}
+.chan-actions{display:flex;gap:10px;flex-wrap:wrap;}
+.cbtn{padding:9px 18px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;border:none;font-family:'Inter',sans-serif;transition:all .2s;display:inline-flex;align-items:center;gap:6px;}
+.cbtn.start{background:var(--blue);color:white;}
+.cbtn.start:hover{background:var(--blue-h);}
+.cbtn.invite{background:var(--gray-light);border:1px solid var(--gray-mid);color:var(--dark);}
+.cbtn.invite:hover{background:var(--gray-mid);}
+.cbtn.smedit{background:none;border:1px solid var(--gray-mid);color:var(--gray);padding:7px 14px;font-size:12px;}
+.cbtn.smdel{background:none;border:1px solid #FECACA;color:var(--red);padding:7px 10px;font-size:12px;}
+.add-chan-btn{background:var(--blue);color:white;border:none;padding:12px 24px;border-radius:9px;font-weight:700;font-size:14px;cursor:pointer;font-family:'Inter',sans-serif;display:inline-flex;align-items:center;gap:6px;transition:all .2s;margin-top:4px;}
+.add-chan-btn:hover{background:var(--blue-h);}
+
+/* ══ SHARE ══ */
+.share-lbl{font-size:13px;font-weight:700;margin-bottom:6px;}
+.share-input{width:100%;background:var(--gray-light);border:2px solid var(--gray-mid);border-radius:10px;padding:11px 14px;color:var(--dark);font-family:'Inter',sans-serif;font-size:14px;outline:none;}
+.scopy-btn{background:var(--blue);color:white;border:none;padding:11px 20px;border-radius:10px;font-weight:700;font-size:14px;cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap;transition:all .2s;}
+.scopy-btn:hover{background:var(--blue-h);}
+.big-code{font-size:32px;font-weight:900;letter-spacing:8px;text-align:center;padding:20px;background:var(--gray-light);border-radius:12px;margin-bottom:10px;}
+.share-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-top:20px;}
+.share-card{background:var(--white);border:1px solid var(--gray-mid);border-radius:14px;padding:20px;}
+.share-card h4{font-size:14px;font-weight:700;margin-bottom:14px;}
+.qr-box{width:140px;height:140px;background:var(--gray-light);border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:52px;}
+
+/* ══ LIVE ══ */
+.live-wrap{max-width:780px;margin:0 auto;padding:28px 20px;}
+.live-top{display:flex;align-items:center;justify-content:space-between;background:var(--white);border:2px solid var(--gray-mid);border-radius:16px;padding:16px 22px;margin-bottom:18px;flex-wrap:wrap;gap:10px;}
+.live-t{font-size:18px;font-weight:800;margin-bottom:3px;}
+.live-st{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--green);font-weight:600;}
+.live-badge{background:var(--red);color:white;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:1px;animation:lp 2s infinite;}
+@keyframes lp{0%,100%{opacity:1}50%{opacity:.6}}
+.cbox2{background:var(--gray-light);border:2px solid var(--gray-mid);border-radius:10px;padding:9px 14px;text-align:center;}
+.cbox2-lbl{font-size:10px;font-weight:700;color:var(--gray);letter-spacing:2px;text-transform:uppercase;margin-bottom:2px;}
+.cbox2-val{font-size:20px;font-weight:900;color:var(--orange);letter-spacing:4px;}
+.cbox2-hint{font-size:11px;color:var(--blue);margin-top:3px;cursor:pointer;font-weight:600;}
+.lang-bar{display:flex;gap:10px;margin-bottom:16px;background:var(--white);border:2px solid var(--gray-mid);border-radius:12px;padding:11px 16px;align-items:center;flex-wrap:wrap;}
+.lang-bar label{margin:0;font-size:12px;font-weight:700;white-space:nowrap;}
+.lang-bar select{flex:1;min-width:130px;padding:8px 11px;font-size:14px;background:var(--gray-light);border:2px solid var(--gray-mid);border-radius:8px;font-family:'Inter',sans-serif;outline:none;color:var(--dark);}
+.lang-bar select:focus{border-color:var(--blue);}
+.panels{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;}
+@media(max-width:500px){.panels{grid-template-columns:1fr;}}
+.panel{background:var(--white);border:2px solid var(--gray-mid);border-radius:16px;padding:22px 18px;text-align:center;}
+.panel h4{font-size:11px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:14px;}
+.mic-big{width:78px;height:78px;border-radius:50%;border:3px solid var(--orange);cursor:pointer;font-size:26px;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;transition:all .3s;background:#FFF0EC;color:var(--orange);}
+.mic-big.on{background:var(--orange);color:white;animation:mp 1s infinite;}
+@keyframes mp{0%,100%{box-shadow:0 0 0 10px rgba(240,78,35,.12)}50%{box-shadow:0 0 0 18px rgba(240,78,35,.04)}}
+.mic-big:hover{transform:scale(1.08);}
+.mlabel{font-size:12px;color:var(--gray);font-weight:500;}
+.mlabel.on{color:var(--orange);font-weight:700;}
+.volbar{display:flex;gap:3px;justify-content:center;height:20px;align-items:flex-end;margin-bottom:8px;}
+.vs{width:4px;background:var(--gray-mid);border-radius:2px;transition:height .1s,background .1s;}
+.vs.on{background:var(--orange);}
+.tbox{background:var(--white);border:2px solid var(--gray-mid);border-radius:16px;padding:20px;margin-bottom:16px;min-height:130px;}
+.tbox h4{font-size:11px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;}
+.ttext{font-size:17px;line-height:1.8;color:var(--dark);min-height:60px;}
+.ttext .im{color:var(--gray);font-style:italic;}
+.lbox{background:var(--dark);border-radius:20px;padding:32px 24px;margin-bottom:16px;min-height:180px;display:flex;align-items:center;justify-content:center;}
+.ltext{font-size:22px;line-height:1.7;color:white;font-weight:500;text-align:center;width:100%;}
+@media(max-width:500px){.ltext{font-size:18px;}}
+.ctrls{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+.leave-btn{display:flex;align-items:center;gap:7px;padding:11px 22px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;background:#FEF2F2;border:2px solid #FECACA;color:var(--red);font-family:'Inter',sans-serif;transition:all .2s;}
+.leave-btn:hover{background:#FEE2E2;}
+.back-panel-btn{background:var(--gray-light);border:1px solid var(--gray-mid);padding:11px 22px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;color:var(--dark);}
+
+/* ══ MODAL ══ */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;display:flex;align-items:center;justify-content:center;padding:20px;}
+.modal-overlay.hidden{display:none;}
+.modal{background:var(--white);border-radius:20px;padding:36px 32px;max-width:460px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.2);}
+.modal h3{font-size:22px;font-weight:800;text-align:center;margin-bottom:24px;letter-spacing:-.4px;}
+.mgroup{margin-bottom:16px;}
+.mlbl{display:block;font-size:12px;font-weight:700;color:var(--dark);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;}
+.minput,.mselect{width:100%;background:var(--gray-light);border:2px solid var(--gray-mid);border-radius:10px;padding:12px 14px;color:var(--dark);font-family:'Inter',sans-serif;font-size:15px;outline:none;transition:border-color .2s;}
+.minput:focus,.mselect:focus{border-color:var(--blue);background:white;}
+.mbtn{background:var(--blue);color:white;border:none;padding:14px;border-radius:10px;font-weight:700;font-size:15px;cursor:pointer;width:100%;font-family:'Inter',sans-serif;transition:all .2s;margin-top:4px;}
+.mbtn:hover{background:var(--blue-h);}
+.mcancel{display:block;text-align:center;color:var(--blue);font-size:14px;font-weight:600;cursor:pointer;margin-top:14px;}
+.invite-info{background:var(--gray-light);border-radius:10px;padding:14px;margin-bottom:14px;font-size:13px;color:var(--gray);line-height:1.6;}
+.invite-link{display:flex;align-items:center;gap:8px;background:white;border:2px solid var(--gray-mid);border-radius:10px;padding:10px 14px;margin-bottom:8px;cursor:pointer;transition:border-color .2s;}
+.invite-link:hover{border-color:var(--blue);}
+.invite-link-txt{font-size:13px;color:var(--blue);font-weight:600;word-break:break-all;}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--dark);color:white;padding:12px 22px;border-radius:10px;font-size:14px;font-weight:500;z-index:999;transition:transform .3s;max-width:90vw;text-align:center;box-shadow:0 8px 24px rgba(0,0,0,.2);}
+.toast.show{transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="logo" onclick="goHome()">
+    <div class="waves"><span></span><span></span><span></span><span></span><span></span></div>
+    <div class="logo-name">Claw<span>Voice</span></div>
+  </div>
+  <nav class="hnav" id="mainNav" style="display:none;">
+    <button class="hnav-btn" id="navPainel" onclick="showDash()">⊟ Painel</button>
+    <button class="hnav-btn" id="navEventos" onclick="showMyEvents()">○ Meus Eventos</button>
+  </nav>
+  <div class="hright">
+    <div class="hbadge" id="hbadge" style="display:none;"></div>
+    <div class="havatar" id="havatar" style="display:none;"></div>
+    <button id="btnSair" onclick="doLogout()" style="display:none;background:none;border:1px solid var(--gray-mid);padding:7px 14px;border-radius:8px;font-weight:600;font-size:14px;cursor:pointer;color:var(--gray);font-family:'Inter',sans-serif;">Sair</button>
+    <button id="btnConectar" onclick="showScreen('screen-tlogin')" style="background:none;border:1px solid var(--gray-mid);padding:7px 16px;border-radius:8px;font-weight:600;font-size:14px;cursor:pointer;color:var(--dark);font-family:'Inter',sans-serif;">Conecte-se</button>
+    <button id="btnComecar" onclick="showScreen('screen-listener')" style="background:var(--blue);color:white;border:none;padding:8px 16px;border-radius:8px;font-weight:700;font-size:14px;cursor:pointer;font-family:'Inter',sans-serif;">Começar agora</button>
+  </div>
+</header>
+
+<!-- ══ LANDING ══ -->
+<div id="screen-home" class="screen active">
+  <div class="land">
+    <div class="land-inner">
+      <div>
+        <div class="land-title">Tradução ao vivo para o seu evento</div>
+        <div class="land-sub">Interprete ao vivo, transmita para celulares. Ouvintes acompanham as legendas em tempo real — sem app, sem cadastro.</div>
+        <button class="land-cta" onclick="showScreen('screen-listener')">Começar agora</button>
+        <button class="land-cta2" onclick="showScreen('screen-tlogin')">Conecte-se</button>
+      </div>
+      <div class="land-img">
+        <div class="phone-mockup">
+          <div style="font-size:11px;font-weight:700;color:var(--gray);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px;">Canais</div>
+          <div class="phone-lang active">
+            <div class="phone-play active">▶</div>
+            <div class="phone-lang-name">Português</div>
+            <div class="phone-wave">
+              <span style="height:4px;animation:wv 1s infinite"></span>
+              <span style="height:8px;animation:wv 1s .15s infinite"></span>
+              <span style="height:12px;animation:wv 1s .3s infinite"></span>
+              <span style="height:8px;animation:wv 1s .45s infinite"></span>
+              <span style="height:5px;animation:wv 1s .6s infinite"></span>
+            </div>
+          </div>
+          <div class="phone-lang">
+            <div class="phone-play">▶</div>
+            <div class="phone-lang-name">Espanhol</div>
+          </div>
+          <div class="phone-lang">
+            <div class="phone-play">▶</div>
+            <div class="phone-lang-name">Inglês</div>
+          </div>
+        </div>
+        <div class="listen-badge">🎧 Assistir</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ OUVINTE — só código, salas só visuais ══ -->
+<div id="screen-listener" class="screen">
+  <div class="join-wrap">
+    <button class="back-lnk" onclick="goHome()">← Voltar</button>
+    <h2>Entrar no evento ao vivo</h2>
+    <p class="join-sub">Digite o código que o tradutor compartilhou com você</p>
+
+    <div class="code-top-lbl">ENTER CODE</div>
+    <div class="cboxes">
+      <input class="cbi" maxlength="1" id="cb0" oninput="ci(0)" onkeydown="ck(event,0)">
+      <input class="cbi" maxlength="1" id="cb1" oninput="ci(1)" onkeydown="ck(event,1)">
+      <input class="cbi" maxlength="1" id="cb2" oninput="ci(2)" onkeydown="ck(event,2)">
+      <input class="cbi" maxlength="1" id="cb3" oninput="ci(3)" onkeydown="ck(event,3)">
+      <input class="cbi" maxlength="1" id="cb4" oninput="ci(4)" onkeydown="ck(event,4)">
+      <input class="cbi" maxlength="1" id="cb5" oninput="ci(5)" onkeydown="ck(event,5)">
+    </div>
+    <button class="join-big-btn" onclick="joinByCode()">Entrar no evento ao vivo</button>
+
+    <div class="or-line">salas disponíveis</div>
+
+    <div class="rooms-sec">
+      <div class="rooms-sec-lbl">🔴 Idiomas online agora</div>
+
+      <!-- salas bloqueadas — só visual, não clicáveis -->
+      <div class="rrow rrow-locked">
+        <div class="rrow-info">
+          <div class="rrow-flag">🇧🇷</div>
+          <div>
+            <div class="rrow-name">Português (Brasil)</div>
+            <div class="rrow-sub"><div class="dot"></div>Online</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:12px;color:var(--gray);">Use o código →</span>
+          <div style="background:var(--gray-light);border:1px solid var(--gray-mid);color:var(--gray);padding:6px 12px;border-radius:7px;font-size:12px;font-weight:600;">🔒</div>
+        </div>
+      </div>
+
+      <div class="rrow rrow-locked">
+        <div class="rrow-info">
+          <div class="rrow-flag">🇪🇸</div>
+          <div>
+            <div class="rrow-name">Espanhol</div>
+            <div class="rrow-sub"><div class="dot"></div>Online</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:12px;color:var(--gray);">Use o código →</span>
+          <div style="background:var(--gray-light);border:1px solid var(--gray-mid);color:var(--gray);padding:6px 12px;border-radius:7px;font-size:12px;font-weight:600;">🔒</div>
+        </div>
+      </div>
+
+      <div class="rrow rrow-locked">
+        <div class="rrow-info">
+          <div class="rrow-flag">🇺🇸</div>
+          <div>
+            <div class="rrow-name">Inglês</div>
+            <div class="rrow-sub"><div class="dot"></div>Online</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:12px;color:var(--gray);">Use o código →</span>
+          <div style="background:var(--gray-light);border:1px solid var(--gray-mid);color:var(--gray);padding:6px 12px;border-radius:7px;font-size:12px;font-weight:600;">🔒</div>
+        </div>
+      </div>
+
+      <div style="background:#FFF7ED;border:1px solid #FED7AA;border-radius:10px;padding:12px 14px;margin-top:10px;font-size:13px;color:#92400E;">
+        💡 <strong>Como entrar:</strong> Peça o código ao tradutor ou ao responsável pela sala. Digite acima para entrar.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ LOGIN / CADASTRO (Conecte-se) ══ -->
+<div id="screen-tlogin" class="screen">
+  <div class="tlogin-wrap">
+    <div class="tlogin-card">
+      <div class="tlogin-waves">
+        <div class="waves"><span></span><span></span><span></span><span></span><span></span></div>
+      </div>
+
+      <!-- ABAS: Login / Cadastro -->
+      <div style="display:flex;border-bottom:2px solid var(--gray-mid);margin-bottom:24px;margin-top:12px;">
+        <button id="tabLogin" onclick="switchLoginTab('login')" style="flex:1;padding:10px;border:none;background:none;font-family:'Inter',sans-serif;font-size:14px;font-weight:700;cursor:pointer;color:var(--dark);border-bottom:2px solid var(--dark);margin-bottom:-2px;">Entrar</button>
+        <button id="tabSignup" onclick="switchLoginTab('signup')" style="flex:1;padding:10px;border:none;background:none;font-family:'Inter',sans-serif;font-size:14px;font-weight:600;cursor:pointer;color:var(--gray);border-bottom:2px solid transparent;margin-bottom:-2px;">Criar conta</button>
+      </div>
+
+      <!-- PAINEL LOGIN -->
+      <div id="panelLogin">
+        <div style="font-size:20px;font-weight:800;text-align:center;margin-bottom:20px;">Admin Login</div>
+        <div style="margin-bottom:12px;">
+          <input id="loginEmail" class="finput" type="email" placeholder="Email" style="margin-bottom:10px;">
+          <input id="loginPassword" class="finput" type="password" placeholder="Senha" onkeydown="if(event.key==='Enter')doLogin()">
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
+          <input type="checkbox" id="rememberMe" checked style="width:16px;height:16px;accent-color:var(--blue);cursor:pointer;">
+          <label for="rememberMe" style="font-size:14px;cursor:pointer;">Lembrar de mim</label>
+        </div>
+        <button class="fbtn" onclick="doLogin()" style="margin-bottom:10px;">Entrar</button>
+        <button style="width:100%;background:none;border:1px solid var(--gray-mid);padding:12px;border-radius:10px;font-family:'Inter',sans-serif;font-size:14px;font-weight:600;cursor:pointer;color:var(--dark);margin-bottom:16px;" onclick="toast2('Em breve: recuperar senha')">Esqueci minha senha</button>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;color:var(--gray);font-size:13px;">
+          <div style="flex:1;height:1px;background:var(--gray-mid);"></div>OU<div style="flex:1;height:1px;background:var(--gray-mid);"></div>
+        </div>
+        <button onclick="doGoogleLogin()" style="width:100%;background:var(--white);border:1px solid var(--gray-mid);padding:12px;border-radius:10px;font-family:'Inter',sans-serif;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:all .2s;" onmouseover="this.style.background='var(--gray-light)'" onmouseout="this.style.background='var(--white)'">
+          <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+          Entrar com Google
+        </button>
+        <div style="margin-top:20px;border-top:1px solid var(--gray-mid);padding-top:16px;text-align:center;">
+          <div style="font-size:13px;color:var(--gray);margin-bottom:8px;">Você é ouvinte ou tradutor convidado?</div>
+          <span onclick="showScreen('screen-listener')" style="color:var(--blue);font-size:14px;font-weight:600;cursor:pointer;">Entre com o código aqui →</span>
+        </div>
+      </div>
+
+      <!-- PAINEL CADASTRO -->
+      <div id="panelSignup" style="display:none;">
+        <div style="font-size:20px;font-weight:800;text-align:center;margin-bottom:20px;">Criar conta</div>
+        <div style="margin-bottom:12px;">
+          <input id="signupName" class="finput" placeholder="Seu nome" style="margin-bottom:10px;">
+          <input id="signupChurch" class="finput" placeholder="Nome da organização / evento" style="margin-bottom:10px;">
+          <input id="signupEmail" class="finput" type="email" placeholder="Email" style="margin-bottom:10px;">
+          <input id="signupPassword" class="finput" type="password" placeholder="Senha" onkeydown="if(event.key==='Enter')doSignup()">
+        </div>
+        <button class="fbtn" onclick="doSignup()" style="margin-bottom:16px;">Criar conta</button>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;color:var(--gray);font-size:13px;">
+          <div style="flex:1;height:1px;background:var(--gray-mid);"></div>OU<div style="flex:1;height:1px;background:var(--gray-mid);"></div>
+        </div>
+        <button onclick="doGoogleLogin()" style="width:100%;background:var(--white);border:1px solid var(--gray-mid);padding:12px;border-radius:10px;font-family:'Inter',sans-serif;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:all .2s;" onmouseover="this.style.background='var(--gray-light)'" onmouseout="this.style.background='var(--white)'">
+          <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+          Cadastrar com Google
+        </button>
+        <div style="margin-top:16px;text-align:center;font-size:13px;color:var(--gray);">
+          Já tem conta? <span onclick="switchLoginTab('login')" style="color:var(--blue);cursor:pointer;font-weight:600;">Entrar</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ══ DASHBOARD ══ -->
+<div id="screen-dashboard" class="screen">
+  <div class="dash-wrap">
+    <div class="dash-title">Áudio ao vivo. Preparar. Já! 🚀</div>
+    <div class="dash-grid">
+      <div class="dcard">
+        <h4>Minha conta</h4>
+        <div style="display:inline-block;padding:4px 12px;border:2px solid var(--dark);border-radius:6px;font-size:12px;font-weight:800;margin-bottom:14px;">CLAWVOICE</div>
+        <p style="font-size:13px;color:var(--gray);line-height:1.6;">Crie salas de tradução para o seu evento. Simples e grátis.</p>
+      </div>
+      <div class="dcard" style="cursor:pointer;" onclick="showMyEvents()">
+        <h4>Meus Eventos</h4>
+        <div id="dashEventsPreview" class="dcard-empty">
+          <p style="font-size:13px;color:var(--gray);margin-bottom:12px;">Ainda não há eventos.</p>
+          <button class="create-btn" onclick="event.stopPropagation();openCreateEvent()">+ Criar evento</button>
+        </div>
+      </div>
+      <div class="dcard">
+        <h4>Participantes</h4>
+        <div class="dash-stat" id="dashListenerCount">0</div>
+        <div class="dash-stat-lbl">Ouvintes ativos agora</div>
+        <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--gray-mid);">
+          <div style="font-size:13px;color:var(--gray);">Total de canais criados</div>
+          <div style="font-size:24px;font-weight:800;margin-top:4px;" id="dashRoomCount">0</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MEUS CULTOS ══ -->
+<div id="screen-my-events" class="screen">
+  <div class="my-events-wrap">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
+      <div class="dash-title" style="margin-bottom:0;">Meus Eventos</div>
+      <button class="create-btn" onclick="openCreateEvent()">+ Novo Evento</button>
+    </div>
+    <div id="eventsList"></div>
+  </div>
+</div>
+
+<!-- ══ EVENTO PAGE ══ -->
+<div id="screen-event" class="screen">
+  <div class="event-page">
+    <button class="back-lnk" onclick="showMyEvents()">← Meus Eventos</button>
+    <div class="event-page-title" id="eventPageTitle">Culto de Domingo</div>
+    <div class="etabs-row">
+      <div class="etabs">
+        <button class="etab active" id="etabCanais" onclick="showEventTab('channels',this)">⊟ Canais</button>
+        <button class="etab" id="etabShare" onclick="showEventTab('share',this)">○ Compartilhar</button>
+      </div>
+      <button class="share-top-btn" onclick="showEventTab('share',document.getElementById('etabShare'))">○ Compartilhe com seu público</button>
+    </div>
+    <div id="tab-channels">
+      <div id="channelsList"></div>
+      <button class="add-chan-btn" onclick="openAddChannel()">+ Novo Canal de Tradução</button>
+    </div>
+    <div id="tab-share" style="display:none;">
+      <div style="display:grid;grid-template-columns:1fr auto;gap:12px;align-items:flex-end;margin-bottom:18px;flex-wrap:wrap;">
+        <div><div class="share-lbl">Link de convite para ouvintes</div><input class="share-input" id="shareLink" readonly></div>
+        <button class="scopy-btn" onclick="copyShareLink()">Copiar link</button>
+      </div>
+      <div><div class="share-lbl">Código de convite</div><div class="big-code" id="shareCodeDisplay">------</div></div>
+      <button class="scopy-btn" onclick="copyShareCode()" style="width:100%;margin-top:8px;">Copiar código</button>
+      <div class="share-grid">
+        <div class="share-card">
+          <h4>📱 QR Code</h4>
+          <div class="qr-box">📱</div>
+          <button onclick="toast2('Em breve!')" style="background:none;border:1px solid var(--gray-mid);color:var(--dark);padding:8px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;width:100%;font-family:'Inter',sans-serif;">↓ Baixar QR Code</button>
+        </div>
+        <div class="share-card">
+          <h4>📱 WhatsApp</h4>
+          <p style="font-size:13px;color:var(--gray);margin-bottom:14px;">Envie o link direto para os ouvintes</p>
+          <button onclick="shareWhatsApp()" style="background:#25D366;color:white;border:none;padding:11px 20px;border-radius:9px;font-weight:700;font-size:14px;cursor:pointer;width:100%;font-family:'Inter',sans-serif;">Compartilhar no WhatsApp</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ LIVE TRANSLATOR ══ -->
+<div id="screen-live-translator" class="screen">
+  <div class="live-wrap">
+    <div class="live-top">
+      <div>
+        <div class="live-t" id="liveRoomTitle">Sala</div>
+        <div class="live-st"><div class="dot"></div><span id="listenerCount">0 ouvintes</span></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+        <span class="live-badge">● AO VIVO</span>
+        <div class="cbox2">
+          <div class="cbox2-lbl">Código</div>
+          <div class="cbox2-val" id="displayCode">------</div>
+          <div class="cbox2-hint" onclick="copyCode()">📋 Copiar e compartilhar</div>
+        </div>
+      </div>
+    </div>
+    <div class="lang-bar">
+      <label>🎙 Idioma que você está FALANDO:</label>
+      <select id="speakLang">
+        <option value="pt-BR">🇧🇷 Português (Brasil)</option>
+        <option value="es-ES">🇪🇸 Espanhol</option>
+        <option value="en-US">🇺🇸 Inglês</option>
+      </select>
+    </div>
+    <div class="panels">
+      <div class="panel">
+        <h4>🎙 Microfone</h4>
+        <div class="volbar" id="volBar">
+          <div class="vs" style="height:5px"></div><div class="vs" style="height:9px"></div>
+          <div class="vs" style="height:14px"></div><div class="vs" style="height:18px"></div>
+          <div class="vs" style="height:14px"></div><div class="vs" style="height:9px"></div>
+          <div class="vs" style="height:5px"></div>
+        </div>
+        <button class="mic-big" id="micBtn" onclick="toggleMic()">🎙</button>
+        <div class="mlabel" id="micLabel">Toque para falar</div>
+      </div>
+      <div class="panel">
+        <h4>📡 Status</h4>
+        <div style="font-size:44px;margin:10px 0 12px;" id="statusEmoji">📡</div>
+        <div style="font-size:13px;color:var(--gray);font-weight:500;" id="statusText">Sala ativa</div>
+      </div>
+    </div>
+    <div class="tbox">
+      <h4>Legenda ao Vivo
+        <button onclick="clearT()" style="background:none;border:none;color:var(--gray);cursor:pointer;font-size:12px;font-family:Inter,sans-serif;font-weight:600;">Limpar</button>
+      </h4>
+      <div class="ttext" id="transcriptDiv"><span style="color:var(--gray);font-size:14px;font-style:italic;">Ative o microfone e comece a falar...</span></div>
+    </div>
+    <div class="ctrls">
+      <button class="leave-btn" onclick="leaveRoom()">🚪 Encerrar</button>
+      <button class="back-panel-btn" onclick="backToEvent()">⬅ Voltar ao Painel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ LIVE LISTENER ══ -->
+<div id="screen-live-listener" class="screen">
+  <div class="live-wrap">
+    <div class="live-top">
+      <div>
+        <div class="live-t" id="listenerRoomName">Sala</div>
+        <div class="live-st"><div class="dot"></div><span>Tradução ao vivo</span></div>
+      </div>
+      <span class="live-badge">● AO VIVO</span>
+    </div>
+    <div class="panels">
+      <div class="panel"><h4>🌍 Idioma</h4><div style="font-size:50px;margin:8px 0 8px;" id="lFlag">🇪🇸</div><div style="font-size:15px;font-weight:800;" id="lName">Espanhol</div></div>
+      <div class="panel"><h4>📶 Conexão</h4><div style="font-size:44px;margin:10px 0 10px;">🟢</div><div style="font-size:13px;color:var(--green);font-weight:700;">Conectado</div></div>
+    </div>
+    <div class="lbox"><div class="ltext" id="listenerText"><span style="color:#6B7280;font-size:16px;font-style:italic;">Aguardando o tradutor começar...</span></div></div>
+    <div class="ctrls"><button class="leave-btn" onclick="leaveRoom()">🚪 Sair</button></div>
+  </div>
+</div>
+
+
+<!-- ══ TELA PERFIL (após Google login) ══ -->
+
+
+<!-- ══ MODAIS ══ -->
+<div class="modal-overlay hidden" id="modalCreateEvent">
+  <div class="modal">
+    <h3>Novo Evento</h3>
+    <div class="mgroup">
+      <label class="mlbl">Nome do Evento</label>
+      <input class="minput" id="newEventName" placeholder="Ex: Culto de Domingo" onkeydown="if(event.key==='Enter')createEvent()">
+    </div>
+    <button class="mbtn" onclick="createEvent()">Criar Evento</button>
+    <div class="mcancel" onclick="closeModal('modalCreateEvent')">Cancelar</div>
+  </div>
+</div>
+
+<div class="modal-overlay hidden" id="modalAddChannel">
+  <div class="modal">
+    <h3>Novo Canal de Tradução</h3>
+    <div class="mgroup">
+      <label class="mlbl">Idioma do Canal</label>
+      <select class="mselect" id="newChanLang">
+        <option value="pt-BR" data-flag="🇧🇷" data-name="Português (BR)">🇧🇷 Português (Brasil)</option>
+        <option value="es-ES" data-flag="🇪🇸" data-name="Espanhol">🇪🇸 Espanhol</option>
+        <option value="en-US" data-flag="🇺🇸" data-name="Inglês">🇺🇸 Inglês</option>
+      </select>
+    </div>
+    <button class="mbtn" onclick="addChannel()">Criar Canal</button>
+    <div class="mcancel" onclick="closeModal('modalAddChannel')">Cancelar</div>
+  </div>
+</div>
+
+<div class="modal-overlay hidden" id="modalInvite">
+  <div class="modal">
+    <h3>Convidar Tradutor</h3>
+    <div class="invite-info">
+      <strong>Canal:</strong> <span id="inviteChanName">-</span><br><br>
+      Compartilhe o link abaixo com o tradutor. Ao abrir, ele entra direto como speaker.
+    </div>
+    <div class="invite-link" onclick="copyInviteLink()">
+      <span>🔗</span>
+      <div class="invite-link-txt" id="inviteLink">-</div>
+    </div>
+    <p style="font-size:12px;color:var(--gray);margin-bottom:14px;">Clique no link para copiar</p>
+    <button class="mbtn" onclick="shareInviteWA()" style="background:#25D366;">📱 Compartilhar no WhatsApp</button>
+    <div class="mcancel" onclick="closeModal('modalInvite')">Fechar</div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══ SUPABASE ══
+const sb = supabase.createClient(
+  'https://ttkgutawjgpmwmgcyzhw.supabase.co',
+  'sb_publishable_IPuEo3KasxftpFWvs4NE3Q_EKVXS4Xi'
+);
+
+// ══ STATE ══
+const S = {
+  loggedIn: false,
+  user: { name: '', org: '' },
+  events: [],
+  currentEventId: null,
+  currentChanCode: null,
+  role: null,
+  recognition: null,
+  listening: false,
+  transcript: '',
+  rtCh: null,
+};
+
+// ══ SCREEN ══
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+function setNavActive(id) {
+  document.querySelectorAll('.hnav-btn').forEach(b => b.classList.remove('active'));
+  const el = document.getElementById(id);
+  if (el) el.classList.add('active');
+}
+function goHome() {
+  if (S.loggedIn) { showDash(); }
+  else { showScreen('screen-home'); }
+}
+
+// ══ LOGIN TABS ══
+function switchLoginTab(tab) {
+  const isLogin = tab === 'login';
+  document.getElementById('panelLogin').style.display = isLogin ? 'block' : 'none';
+  document.getElementById('panelSignup').style.display = isLogin ? 'none' : 'block';
+  document.getElementById('tabLogin').style.borderBottomColor = isLogin ? 'var(--dark)' : 'transparent';
+  document.getElementById('tabLogin').style.color = isLogin ? 'var(--dark)' : 'var(--gray)';
+  document.getElementById('tabLogin').style.fontWeight = isLogin ? '700' : '600';
+  document.getElementById('tabSignup').style.borderBottomColor = isLogin ? 'transparent' : 'var(--dark)';
+  document.getElementById('tabSignup').style.color = isLogin ? 'var(--gray)' : 'var(--dark)';
+  document.getElementById('tabSignup').style.fontWeight = isLogin ? '600' : '700';
+}
+
+// ══ LOGIN ══
+function doLogin() {
+  const email = (document.getElementById('loginEmail').value || '').trim();
+  if (!email) { toast2('⚠️ Digite seu email'); return; }
+  const name = email.split('@')[0];
+  completeLogin(name, '');
+}
+
+function doSignup() {
+  const name = (document.getElementById('signupName').value || '').trim();
+  const org = (document.getElementById('signupChurch').value || '').trim();
+  const email = (document.getElementById('signupEmail').value || '').trim();
+  if (!name) { toast2('⚠️ Digite seu nome'); return; }
+  if (!email) { toast2('⚠️ Digite seu email'); return; }
+  completeLogin(name, org || '');
+}
+
+async function doGoogleLogin() {
+  toast2('🔄 Conectando com Google...');
+  const { error } = await sb.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: window.location.origin + window.location.pathname
+    }
+  });
+  if (error) toast2('❌ Erro: ' + error.message);
+}
+
+async function checkAuthSession() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (session && session.user) {
+    const user = session.user;
+    const name = user.user_metadata?.full_name || user.email.split('@')[0];
+    const org  = user.user_metadata?.org || '';
+    completeLogin(name, org);
+  }
+}
+
+sb.auth.onAuthStateChange((event, session) => {
+  if (event === 'SIGNED_IN' && session) {
+    const user = session.user;
+    const name = user.user_metadata?.full_name || user.email.split('@')[0];
+    const org  = user.user_metadata?.org || '';
+    if (!S.loggedIn) completeLogin(name, org);
+  }
+  if (event === 'SIGNED_OUT') {
+    if (S.loggedIn) doLogout();
+  }
+});
+
+function completeLogin(name, org) {
+  S.user = { name, org };
+  S.loggedIn = true;
+  document.getElementById('mainNav').style.display = 'flex';
+  if (org) {
+    document.getElementById('hbadge').textContent = org;
+    document.getElementById('hbadge').style.display = 'block';
+  } else {
+    document.getElementById('hbadge').style.display = 'none';
+  }
+  document.getElementById('havatar').textContent = name[0].toUpperCase();
+  document.getElementById('havatar').style.display = 'flex';
+  const bc = document.getElementById('btnConectar');
+  const bk = document.getElementById('btnComecar');
+  const bs = document.getElementById('btnSair');
+  if (bc) bc.style.display = 'none';
+  if (bk) bk.style.display = 'none';
+  if (bs) bs.style.display = 'block';
+  showDash();
+  toast2('Bem-vindo, ' + name + '! 👋');
+}
+
+async function doLogout() {
+  await sb.auth.signOut();
+  S.loggedIn = false;
+  S.user = { name: '', org: '' };
+  S.events = [];
+  S.currentEventId = null;
+  S.currentChanCode = null;
+  // Hide logged-in UI
+  document.getElementById('mainNav').style.display = 'none';
+  document.getElementById('hbadge').style.display = 'none';
+  document.getElementById('havatar').style.display = 'none';
+  document.getElementById('btnSair').style.display = 'none';
+  // Show logged-out UI
+  const bc = document.getElementById('btnConectar');
+  const bk = document.getElementById('btnComecar');
+  if (bc) bc.style.display = '';
+  if (bk) bk.style.display = '';
+  goHome();
+  toast2('Você saiu da conta.');
+}
+
+// ══ DASHBOARD ══
+function showDash() {
+  setNavActive('navPainel');
+  renderDashEvents();
+  const total = S.events.reduce((a, e) => a + e.channels.length, 0);
+  document.getElementById('dashRoomCount').textContent = total;
+  showScreen('screen-dashboard');
+}
+
+function renderDashEvents() {
+  const el = document.getElementById('dashEventsPreview');
+  if (S.events.length === 0) {
+    el.innerHTML = '<p style="font-size:13px;color:var(--gray);margin-bottom:12px;">Ainda não há eventos.</p><button class="create-btn" onclick="openCreateEvent()">+ Criar evento</button>';
+  } else {
+    el.innerHTML = S.events.slice(-3).map(e => `
+      <div class="event-row" onclick="showEventPage('${e.id}')">
+        <div><div class="event-row-name">${esc(e.name)}</div><div class="event-row-meta">${e.channels.length} canal(is)</div></div>
+        <span class="ebadge">Pronto</span>
+      </div>`).join('');
+  }
+}
+
+// ══ MEUS CULTOS ══
+function showMyEvents() {
+  setNavActive('navEventos');
+  renderEventsList();
+  showScreen('screen-my-events');
+}
+
+function renderEventsList() {
+  const el = document.getElementById('eventsList');
+  if (S.events.length === 0) {
+    el.innerHTML = `<div style="text-align:center;padding:60px 20px;color:var(--gray);">
+      <div style="font-size:40px;margin-bottom:12px;">🕊</div>
+      <div style="font-size:16px;font-weight:600;margin-bottom:6px;">Nenhum evento criado ainda</div>
+      <div style="font-size:14px;margin-bottom:20px;">Crie seu primeiro evento para começar</div>
+      <button class="create-btn" onclick="openCreateEvent()">+ Criar primeiro evento</button>
+    </div>`;
+  } else {
+    el.innerHTML = '<div style="background:var(--white);border:1px solid var(--gray-mid);border-radius:16px;overflow:hidden;">' +
+      S.events.map(e => `
+        <div class="event-row" style="padding:16px 20px;border-bottom:1px solid var(--gray-mid);" onclick="showEventPage('${e.id}')">
+          <div><div class="event-row-name">${esc(e.name)}</div><div class="event-row-meta">${e.channels.length} canal(is) · Código: ${e.code}</div></div>
+          <span class="ebadge">Pronto</span>
+        </div>`).join('') + '</div>';
+  }
+}
+
+// ══ CRIAR EVENTO ══
+function openCreateEvent() {
+  document.getElementById('newEventName').value = '';
+  openModal('modalCreateEvent');
+  setTimeout(() => document.getElementById('newEventName').focus(), 100);
+}
+
+function createEvent() {
+  const nameEl = document.getElementById('newEventName');
+  const name = (nameEl.value || '').trim();
+  if (!name) { toast2('⚠️ Digite o nome do evento'); nameEl.focus(); return; }
+  const id = 'evt_' + Date.now();
+  const code = genCode();
+  S.events.push({ id, name, code, channels: [] });
+  closeModal('modalCreateEvent');
+  toast2('✅ Evento "' + name + '" criado!');
+  showEventPage(id);
+}
+
+// ══ EVENTO PAGE ══
+function showEventPage(id) {
+  const ev = S.events.find(e => e.id === id);
+  if (!ev) { toast2('Evento não encontrado'); return; }
+  S.currentEventId = id;
+  document.getElementById('eventPageTitle').textContent = ev.name;
+  document.getElementById('shareLink').value = window.location.href.split('?')[0] + '?join=' + ev.code;
+  document.getElementById('shareCodeDisplay').textContent = ev.code;
+  showEventTab('channels', document.getElementById('etabCanais'));
+  renderChannels(ev);
+  showScreen('screen-event');
+}
+
+function showEventTab(tab, btn) {
+  document.getElementById('tab-channels').style.display = tab === 'channels' ? 'block' : 'none';
+  document.getElementById('tab-share').style.display = tab === 'share' ? 'block' : 'none';
+  document.querySelectorAll('.etab').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+}
+
+// ══ CANAIS ══
+function renderChannels(ev) {
+  const el = document.getElementById('channelsList');
+  if (ev.channels.length === 0) {
+    el.innerHTML = `<div class="chan-empty">
+      <p style="font-size:17px;font-weight:700;margin-bottom:12px;">Crie seu primeiro canal de áudio</p>
+      <button class="add-chan-btn" onclick="openAddChannel()">+ Novo Canal</button>
+    </div>`;
+  } else {
+    el.innerHTML = ev.channels.map(ch => `
+      <div class="chan-card">
+        <div class="chan-card-top">
+          <div>
+            <div class="chan-name">${ch.flag} ${ch.name}</div>
+            <div class="chan-sub">🎧 0 ouvintes · Código: <strong>${ch.code}</strong></div>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button class="cbtn smedit" onclick="toast2('Em breve: editar canal')">✏ Editar</button>
+            <button class="cbtn smdel" onclick="deleteChan('${ev.id}','${ch.code}')">🗑</button>
+          </div>
+        </div>
+        <div class="chan-actions">
+          <button class="cbtn start" onclick="startLive('${ch.code}','${ch.name}','${ch.flag}','${ch.lang}')">🎙 Start as Speaker</button>
+          <button class="cbtn invite" onclick="openInvite('${ch.code}','${ch.name}')">👤+ Convidar Tradutor</button>
+        </div>
+      </div>`).join('');
+  }
+}
+
+function openAddChannel() { openModal('modalAddChannel'); }
+
+function addChannel() {
+  const sel = document.getElementById('newChanLang');
+  const opt = sel.options[sel.selectedIndex];
+  const lang = sel.value;
+  const flag = opt.getAttribute('data-flag') || '🌍';
+  const name = opt.getAttribute('data-name') || lang;
+  const ev = S.events.find(e => e.id === S.currentEventId);
+  if (!ev) return;
+  // verifica se já existe
+  if (ev.channels.find(c => c.lang === lang)) {
+    toast2('⚠️ Já existe um canal para ' + name); return;
+  }
+  const code = genCode();
+  ev.channels.push({ lang, flag, name, code });
+  closeModal('modalAddChannel');
+  renderChannels(ev);
+  document.getElementById('dashRoomCount').textContent = S.events.reduce((a, e) => a + e.channels.length, 0);
+  toast2('✅ Canal ' + flag + ' ' + name + ' criado! Código: ' + code);
+}
+
+function deleteChan(evId, code) {
+  const ev = S.events.find(e => e.id === evId);
+  if (!ev) return;
+  ev.channels = ev.channels.filter(c => c.code !== code);
+  renderChannels(ev);
+  toast2('Canal removido');
+}
+
+// ══ INVITE ══
+function openInvite(code, name) {
+  document.getElementById('inviteChanName').textContent = name;
+  const link = window.location.href.split('?')[0] + '?speaker=' + code;
+  document.getElementById('inviteLink').textContent = link;
+  openModal('modalInvite');
+}
+function copyInviteLink() {
+  const link = document.getElementById('inviteLink').textContent;
+  navigator.clipboard.writeText(link).then(() => toast2('🔗 Link copiado!')).catch(() => toast2('Link: ' + link));
+}
+function shareInviteWA() {
+  const link = document.getElementById('inviteLink').textContent;
+  const chan = document.getElementById('inviteChanName').textContent;
+  window.open('https://wa.me/?text=' + encodeURIComponent('Você foi convidado para traduzir no ClawVoice!\nCanal: ' + chan + '\nLink: ' + link), '_blank');
+}
+
+// ══ SHARE ══
+function copyShareLink() {
+  navigator.clipboard.writeText(document.getElementById('shareLink').value).then(() => toast2('📋 Link copiado!'));
+}
+function copyShareCode() {
+  navigator.clipboard.writeText(document.getElementById('shareCodeDisplay').textContent).then(() => toast2('📋 Código copiado!'));
+}
+function shareWhatsApp() {
+  const ev = S.events.find(e => e.id === S.currentEventId);
+  if (!ev) return;
+  const msg = 'Entre no ClawVoice para acompanhar o evento ao vivo!\nCódigo: ' + ev.code + '\nLink: ' + document.getElementById('shareLink').value;
+  window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+}
+
+// ══ LIVE TRANSLATOR ══
+async function startLive(code, name, flag, lang) {
+  S.role = 'translator';
+  S.currentChanCode = code;
+  S.transcript = '';
+  await sb.from('rooms').upsert({ code, name: flag + ' ' + name, lang, flag, lang_name: name, active: true, transcript: '', updated_at: new Date().toISOString() });
+  S.rtCh = sb.channel('room-' + code);
+  S.rtCh.subscribe();
+  document.getElementById('liveRoomTitle').textContent = flag + ' ' + name;
+  document.getElementById('displayCode').textContent = code;
+  document.getElementById('listenerCount').textContent = '0 ouvintes';
+  document.getElementById('transcriptDiv').innerHTML = '<span style="color:var(--gray);font-size:14px;font-style:italic;">Ative o microfone e comece a falar...</span>';
+  showScreen('screen-live-translator');
+  toast2('🎙 Ao vivo! Código: ' + code);
+}
+
+function backToEvent() {
+  stopMic();
+  if (S.currentEventId) showEventPage(S.currentEventId);
+  else showDash();
+}
+
+// ══ MIC ══
+function toggleMic() { if (S.listening) stopMic(); else startMic(); }
+
+function startMic() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { toast2('⚠️ Use o Google Chrome'); return; }
+  const rec = new SR();
+  rec.continuous = true; rec.interimResults = true;
+  rec.lang = document.getElementById('speakLang').value;
+  rec.onresult = async e => {
+    let fin = '', interim = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      const t = e.results[i][0].transcript;
+      if (e.results[i].isFinal) fin += t + ' '; else interim += t;
+    }
+    if (fin) { S.transcript += fin; await sendT(S.transcript); }
+    showTT(S.transcript, interim);
+  };
+  rec.onerror = e => { if (e.error !== 'no-speech') toast2('Erro: ' + e.error); };
+  rec.onend = () => { if (S.listening) rec.start(); };
+  rec.start(); S.recognition = rec; S.listening = true;
+  document.getElementById('micBtn').classList.add('on');
+  document.getElementById('micBtn').textContent = '🔴';
+  document.getElementById('micLabel').textContent = 'Falando... (toque para pausar)';
+  document.getElementById('micLabel').classList.add('on');
+  document.getElementById('statusEmoji').textContent = '🎙';
+  document.getElementById('statusText').textContent = 'Transmitindo ao vivo';
+  startVol();
+}
+
+function stopMic() {
+  if (S.recognition) { S.recognition.stop(); S.recognition = null; }
+  S.listening = false;
+  const btn = document.getElementById('micBtn');
+  if (btn) { btn.classList.remove('on'); btn.textContent = '🎙'; }
+  const lbl = document.getElementById('micLabel');
+  if (lbl) { lbl.textContent = 'Toque para falar'; lbl.classList.remove('on'); }
+  const se = document.getElementById('statusEmoji');
+  const st = document.getElementById('statusText');
+  if (se) se.textContent = '⏸';
+  if (st) st.textContent = 'Pausado';
+  stopVol();
+}
+
+async function sendT(text) {
+  if (S.rtCh) await S.rtCh.send({ type: 'broadcast', event: 'transcript', payload: { text } });
+  await sb.from('rooms').update({ transcript: text, updated_at: new Date().toISOString() }).eq('code', S.currentChanCode);
+}
+
+async function clearT() {
+  S.transcript = '';
+  document.getElementById('transcriptDiv').innerHTML = '<span style="color:var(--gray);font-size:14px;font-style:italic;">Legendas limpas.</span>';
+  await sendT('');
+}
+
+function showTT(fin, interim) {
+  const d = document.getElementById('transcriptDiv');
+  d.innerHTML = '<span>' + esc(fin) + '</span><span class="im"> ' + esc(interim) + '</span>';
+  d.scrollTop = d.scrollHeight;
+}
+
+// ══ OUVINTE ══
+function ci(i) {
+  const el = document.getElementById('cb' + i);
+  el.value = el.value.toUpperCase();
+  el.classList.toggle('filled', el.value !== '');
+  if (el.value && i < 5) document.getElementById('cb' + (i + 1)).focus();
+}
+function ck(e, i) {
+  if (e.key === 'Backspace' && !document.getElementById('cb' + i).value && i > 0)
+    document.getElementById('cb' + (i - 1)).focus();
+}
+function getCode() { return [0,1,2,3,4,5].map(i => document.getElementById('cb' + i).value).join(''); }
+function clearCode() { [0,1,2,3,4,5].forEach(i => { const el = document.getElementById('cb' + i); el.value = ''; el.classList.remove('filled'); }); }
+
+function joinByCode() {
+  const code = getCode();
+  if (code.length < 4) { toast2('Digite o código completo'); return; }
+  joinRoom(code, 'Sala ' + code, '🌍', 'Idioma');
+}
+
+async function joinRoom(code, name, flag, langName) {
+  S.role = 'listener';
+  S.currentChanCode = code;
+  const { data } = await sb.from('rooms').select('*').eq('code', code).single();
+  if (data) {
+    name = data.name; flag = data.flag || flag; langName = data.lang_name || langName;
+    if (data.transcript) updateL(data.transcript);
+  }
+  document.getElementById('listenerRoomName').textContent = name;
+  document.getElementById('lFlag').textContent = flag;
+  document.getElementById('lName').textContent = langName;
+  S.rtCh = sb.channel('room-' + code);
+  S.rtCh
+    .on('broadcast', { event: 'transcript' }, p => updateL(p.payload.text))
+    .on('broadcast', { event: 'room_closed' }, () => { toast2('⚠️ Sala encerrada'); leaveRoom(); })
+    .subscribe();
+  showScreen('screen-live-listener');
+  toast2('🎧 Conectado: ' + name);
+}
+
+function updateL(text) {
+  const d = document.getElementById('listenerText');
+  if (!d) return;
+  d.innerHTML = text ? '<span>' + esc(text) + '</span>' : '<span style="color:#6B7280;font-size:16px;font-style:italic;">Aguardando o tradutor falar...</span>';
+  d.scrollTop = d.scrollHeight;
+}
+
+// ══ LEAVE ══
+async function leaveRoom() {
+  stopMic();
+  if (S.role === 'translator') {
+    if (S.rtCh) await S.rtCh.send({ type: 'broadcast', event: 'room_closed', payload: {} });
+    await sb.from('rooms').update({ active: false }).eq('code', S.currentChanCode);
+    if (S.rtCh) { sb.removeChannel(S.rtCh); S.rtCh = null; }
+    if (S.loggedIn && S.currentEventId) { showEventPage(S.currentEventId); return; }
+  }
+  if (S.rtCh) { sb.removeChannel(S.rtCh); S.rtCh = null; }
+  clearCode();
+  if (S.loggedIn) showDash(); else showScreen('screen-home');
+}
+
+// ══ MODAL ══
+function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+document.addEventListener('click', e => {
+  if (e.target.classList.contains('modal-overlay')) e.target.classList.add('hidden');
+});
+
+// ══ COPY CODE ══
+function copyCode() {
+  const code = document.getElementById('displayCode').textContent;
+  const msg = 'Entre no ClawVoice para ouvir a tradução ao vivo!\nLink: ' + window.location.href.split('?')[0] + '\nCódigo: ' + code;
+  navigator.clipboard.writeText(msg).then(() => toast2('📋 Copiado! Cole no WhatsApp 📱')).catch(() => toast2('Código: ' + code));
+}
+
+// ══ URL PARAMS ══
+window.addEventListener('load', () => {
+  const p = new URLSearchParams(window.location.search);
+  if (p.has('join')) joinRoom(p.get('join'), 'Sala', '🌍', 'Idioma');
+  else if (p.has('speaker')) startLive(p.get('speaker'), 'Canal Speaker', '🎙', 'pt-BR');
+  else checkAuthSession();
+});
+
+// ══ UTILS ══
+function genCode() { return Math.random().toString(36).substr(2, 6).toUpperCase(); }
+function toast2(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3200);
+}
+function esc(s) { return (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+
+let vi;
+function startVol() {
+  const s = document.querySelectorAll('.vs');
+  vi = setInterval(() => {
+    s.forEach(el => { const h = Math.random() > .3 ? Math.floor(Math.random() * 16 + 3) : 3; el.style.height = h + 'px'; el.classList.toggle('on', h > 8); });
+  }, 120);
+}
+function stopVol() {
+  clearInterval(vi);
+  document.querySelectorAll('.vs').forEach(s => { s.style.height = '4px'; s.classList.remove('on'); });
+}
+</script>
+</body>
+</html>
