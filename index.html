@@ -734,14 +734,28 @@ async function checkAuthSession() {
 }
 
 sb.auth.onAuthStateChange((event, session) => {
-  if (event === 'SIGNED_IN' && session) {
+  console.log('AUTH EVENT:', event, session?.user?.email);
+  if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') && session) {
     const user = session.user;
     const name = user.user_metadata?.full_name || user.email.split('@')[0];
     const org  = user.user_metadata?.org || '';
     if (!S.loggedIn) completeLogin(name, org);
   }
   if (event === 'SIGNED_OUT') {
-    if (S.loggedIn) doLogout();
+    if (S.loggedIn) {
+      S.loggedIn = false;
+      S.user = { name: '', org: '' };
+      S.events = [];
+      document.getElementById('mainNav').style.display = 'none';
+      document.getElementById('hbadge').style.display = 'none';
+      document.getElementById('havatar').style.display = 'none';
+      document.getElementById('btnSair').style.display = 'none';
+      const bc = document.getElementById('btnConectar');
+      const bk = document.getElementById('btnComecar');
+      if (bc) bc.style.display = '';
+      if (bk) bk.style.display = '';
+      showScreen('screen-home');
+    }
   }
 });
 
@@ -1128,7 +1142,7 @@ window.addEventListener('load', () => {
   const p = new URLSearchParams(window.location.search);
   if (p.has('join')) joinRoom(p.get('join'), 'Sala', '🌍', 'Idioma');
   else if (p.has('speaker')) startLive(p.get('speaker'), 'Canal Speaker', '🎙', 'pt-BR');
-  else checkAuthSession();
+  // Auth is handled by onAuthStateChange above
 });
 
 // ══ UTILS ══
