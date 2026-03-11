@@ -819,59 +819,42 @@ async function doGoogleLogin() {
   if (error) toast2('❌ Erro: ' + error.message);
 }
 
+// ══ AUTH ÚNICO — não usar onAuthStateChange para login, só para logout ══
+sb.auth.onAuthStateChange((event, session) => {
+  if (event === 'SIGNED_OUT') {
+    S.loggedIn = false;
+    S.user = { name: '', org: '' };
+    S.events = [];
+    document.getElementById('mainNav').style.display = 'none';
+    document.getElementById('hbadge').style.display = 'none';
+    document.getElementById('havatar').style.display = 'none';
+    document.getElementById('btnSair').style.display = 'none';
+    const bc = document.getElementById('btnConectar');
+    const bk = document.getElementById('btnComecar');
+    if (bc) bc.style.display = '';
+    if (bk) bk.style.display = '';
+    showScreen('screen-home');
+  }
+});
+
 async function checkAuthSession() {
-  // Supabase v2 uses PKCE flow - token comes as ?code= param
+  // Caso 1: voltando do Google OAuth — URL tem ?code=
   const params = new URLSearchParams(window.location.search);
   const code = params.get('code');
-  
   if (code) {
-    toast2('🔄 Autenticando...');
-    // Exchange the code for a session
-    const { data, error } = await sb.auth.exchangeCodeForSession(code);
-    if (data?.session) {
-      window.history.replaceState(null, '', window.location.pathname);
-      const u = data.session.user;
-      const name = u.user_metadata?.full_name || u.email.split('@')[0];
-      completeLogin(name, u.user_metadata?.org || '');
-      return;
-    }
-    if (error) console.log('Auth error:', error.message);
+    toast2('🔄 Autenticando com Google...');
+    window.history.replaceState(null, '', window.location.pathname);
+    // Aguarda Supabase processar o code automaticamente (detectSessionInUrl:true faz isso)
+    await new Promise(r => setTimeout(r, 800));
   }
-
-  // Check existing session
-  const { data: { session } } = await sb.auth.getSession();
+  // Verifica sessão (funciona para código OAuth e sessão existente)
+  const { data: { session }, error } = await sb.auth.getSession();
   if (session?.user) {
     const u = session.user;
     const name = u.user_metadata?.full_name || u.email.split('@')[0];
     completeLogin(name, u.user_metadata?.org || '');
   }
 }
-
-sb.auth.onAuthStateChange((event, session) => {
-  console.log('AUTH EVENT:', event, session?.user?.email);
-  if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') && session) {
-    const user = session.user;
-    const name = user.user_metadata?.full_name || user.email.split('@')[0];
-    const org  = user.user_metadata?.org || '';
-    if (!S.loggedIn) completeLogin(name, org);
-  }
-  if (event === 'SIGNED_OUT') {
-    if (S.loggedIn) {
-      S.loggedIn = false;
-      S.user = { name: '', org: '' };
-      S.events = [];
-      document.getElementById('mainNav').style.display = 'none';
-      document.getElementById('hbadge').style.display = 'none';
-      document.getElementById('havatar').style.display = 'none';
-      document.getElementById('btnSair').style.display = 'none';
-      const bc = document.getElementById('btnConectar');
-      const bk = document.getElementById('btnComecar');
-      if (bc) bc.style.display = '';
-      if (bk) bk.style.display = '';
-      showScreen('screen-home');
-    }
-  }
-});
 
 function completeLogin(name, org) {
   S.user = { name, org };
