@@ -1138,11 +1138,25 @@ function copyCode() {
 }
 
 // ══ URL PARAMS ══
-window.addEventListener('load', () => {
+window.addEventListener('load', async () => {
   const p = new URLSearchParams(window.location.search);
-  if (p.has('join')) joinRoom(p.get('join'), 'Sala', '🌍', 'Idioma');
-  else if (p.has('speaker')) startLive(p.get('speaker'), 'Canal Speaker', '🎙', 'pt-BR');
-  // Auth is handled by onAuthStateChange above
+  if (p.has('join')) { joinRoom(p.get('join'), 'Sala', '🌍', 'Idioma'); return; }
+  if (p.has('speaker')) { startLive(p.get('speaker'), 'Canal Speaker', '🎙', 'pt-BR'); return; }
+
+  // Se voltou do Google OAuth (hash tem access_token)
+  const hash = window.location.hash;
+  if (hash && hash.includes('access_token')) {
+    toast2('🔄 Autenticando...');
+    // Aguarda o Supabase processar o hash
+    await new Promise(r => setTimeout(r, 1500));
+    const { data: { session } } = await sb.auth.getSession();
+    if (session && session.user) {
+      window.history.replaceState(null, '', window.location.pathname);
+      const u = session.user;
+      const name = u.user_metadata?.full_name || u.email.split('@')[0];
+      completeLogin(name, u.user_metadata?.org || '');
+    }
+  }
 });
 
 // ══ UTILS ══
